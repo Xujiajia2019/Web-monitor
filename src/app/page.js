@@ -101,7 +101,12 @@ export default function Home() {
               />
               <Button submit>Start monitoring</Button>
             </FormLayout>
-            {result}
+            <iframe
+              title="Rendered HTML"
+              width="100%"
+              height="400px"
+              srcDoc={result}
+            ></iframe>
           </Form>
         </Layout.AnnotatedSection>
       </Layout>
