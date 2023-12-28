@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-// import * as cheerio from 'cheerio';
+
 
 export async function POST(req) {
   try {
@@ -15,13 +15,11 @@ export async function POST(req) {
           },
         })
 
-        const data = await response.text()
+        const html = await response.text()
+        const content = {}
 
-        // parse data use cheerio.js and return all elements content
-        // const $ = cheerio.load(data)
-       
-        console.log(data)
-        return NextResponse.json({data})
+        console.log(content)
+        return NextResponse.json({html, content})
       } else {
         return NextResponse.json({ error: "Missing parameters", status:400 });
       }

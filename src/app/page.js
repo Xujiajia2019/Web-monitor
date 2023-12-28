@@ -24,6 +24,7 @@ import {
 import { useState, useCallback } from 'react';
 import '@shopify/polaris/build/esm/styles.css';
 import React from 'react';
+const cheerio = require('cheerio')
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
@@ -47,10 +48,35 @@ export default function Home() {
     })
     .then(res => res.json())
     .then(data => {
-      setResult(data.data)
+      const content = getContent(data.html)
+      setResult(content)
       setIsLoading(false)
     })
   }, [page]);
+
+
+  function getContent(html) {
+    console.log(html)
+    // parse data use cheerio.js and return all elements content
+    const $ = cheerio.load(html)
+
+    console.log($('#shopify-section-template--16445589029022__4fce367b-96f8-40e0-8ef9-f3b5c1cd3f84'))
+
+    // get all text content
+    function getAllTextNodes(node) {
+      let text = ''
+      if (node.type === 'text') {
+        text += node.data;
+      } else if (node.children) {
+        node.children.each((index, child) => {
+          text += getAllTextNodes(child);
+        });
+      }
+      return text
+    }
+    const textContent = getAllTextNodes($('#shopify-section-template--16445589029022__4fce367b-96f8-40e0-8ef9-f3b5c1cd3f84')[0])
+    return(textContent)
+  }
 
   const navigationMarkup = (
     <Navigation location="/">
@@ -101,12 +127,16 @@ export default function Home() {
               />
               <Button submit>Start monitoring</Button>
             </FormLayout>
-            <iframe
+            {/* <iframe
               title="Rendered HTML"
               width="100%"
               height="400px"
               srcDoc={result}
-            ></iframe>
+            ></iframe> */}
+            <div>
+              <h2>Content</h2>
+              {result}
+            </div>
           </Form>
         </Layout.AnnotatedSection>
       </Layout>
@@ -114,7 +144,6 @@ export default function Home() {
   );
 
   const pageMarkup = actualPageMarkup
-
 
   return (
     <AppProvider>
