@@ -56,11 +56,8 @@ export default function Home() {
 
 
   function getContent(html) {
-    console.log(html)
-    // parse data use cheerio.js and return all elements content
     const $ = cheerio.load(html)
 
-    console.log($('#shopify-section-template--16445589029022__4fce367b-96f8-40e0-8ef9-f3b5c1cd3f84'))
 
     // get all text content
     function getAllTextNodes(node) {
@@ -68,7 +65,7 @@ export default function Home() {
       if (node.type === 'text') {
         text += node.data;
       } else if (node.children) {
-        node.children.each((index, child) => {
+        $(node.children).each((index, child) => {
           text += getAllTextNodes(child);
         });
       }
