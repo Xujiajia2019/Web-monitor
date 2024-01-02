@@ -12,8 +12,10 @@
     "@shopify/app-bridge": "^3.7.9",
     "@shopify/app-bridge-react": "^3.7.9",
     "@shopify/polaris": "^12.3.0",
+    "@supabase/supabase-js": "^2.39.1",
     "cheerio": "^1.0.0-rc.12",
     "next": "14.0.3",
+    "node-cron": "^3.0.3",
     "react": "^18",
     "react-dom": "^18"
   },
