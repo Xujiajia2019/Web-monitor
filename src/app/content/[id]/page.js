@@ -13,13 +13,10 @@ import {
 import { useState, useEffect } from 'react';
 import '@shopify/polaris/build/esm/styles.css';
 import React from 'react';
-import ContentMonitorStarter from '../../components/ContentMonitorStarter';
-import ContentLogList from '../../components/ContentLogList'
+import LogDetail from '../../../components/LogDetail'
 
-export default function Content() {
-  // 是否已经激活内容监听器
-  const [active, setActive] = useState(null);
-  const [logData, setLogData] = useState([]);
+export default function Detail({params}) {
+  const [log, setLog] = useState({});
 
   useEffect(() => {
     // 在组件挂载时获取数据
@@ -32,8 +29,9 @@ export default function Content() {
 
         const data = await response.json(); // 替换为你的获取数据的函数
         if (data && data.length > 0) {
-          setLogData(data)
-          setActive(true)
+          const targetLog = data.find(log => log.id == params.id)
+          console.log(targetLog)
+          setLog(targetLog)
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -60,8 +58,7 @@ export default function Content() {
           },
           {
             label: 'Notifications',
-            icon: OrdersMajor,
-            url: '/notifications'
+            icon: OrdersMajor
           },
           {
             label: 'Settings',
@@ -84,7 +81,7 @@ export default function Content() {
           title="Account details"
           description="Jaded Pixel will use this as your account information."
         >
-        {active ? <ContentLogList logData={logData}></ContentLogList> : <ContentMonitorStarter setActive={setActive}></ContentMonitorStarter>}
+        <LogDetail log={log}></LogDetail>
         </Layout.AnnotatedSection>
       </Layout>
     </Page>

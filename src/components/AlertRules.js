@@ -7,7 +7,7 @@ import {
   Text,
 } from '@shopify/polaris';
 
-const LogList = ({logData}) => {
+const AlertRules = ({rules}) => {
   return (
     <div>
       <h1>Loglist</h1>
@@ -62,4 +62,4 @@ const LogList = ({logData}) => {
   );
 };
 
-export default LogList;
+export default AlertRules;

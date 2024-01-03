@@ -1,12 +1,12 @@
 import { supabase } from '/api';
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(req) {
   try {
     if (req.method === "GET") {
       let { data, error } = await supabase
         .from('Page Content')
-        .select('url, content, created_at')
+        .select('id, url, content, created_at')
         .order('created_at', { ascending: false });
 
       if (error) {
