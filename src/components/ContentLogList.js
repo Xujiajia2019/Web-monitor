@@ -4,7 +4,7 @@ import {
   ResourceList,
   Avatar,
   ResourceItem,
-  Text,
+  Text
 } from '@shopify/polaris';
 
 const LogList = ({logData}) => {

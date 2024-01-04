@@ -1,10 +1,6 @@
 import { NextResponse } from 'next/server';
-import cron from 'node-cron';
 import { supabase } from '/api'
-import cheerio from 'cheerio';
 
-// 每 10 分钟执行一次
-const CRON_EXPRESSION = '*/10 * * * *';
 
 async function fetchDataAndProcess(pageUrl) {
   try {
@@ -69,21 +65,33 @@ export async function POST(req) {
   try {
     if (req.method === "POST") {
       const request = await req.json();
-      const pageUrl = request.url;
+
+      const type = request.type;
+      const page = request.page;
+      const element = request.element;
+      const condition = request.condition;
+      const value = request.value;
 
       
-      if (pageUrl !== undefined) {
-        // 初始获取页面内容
-        const initialExecutionResult = await fetchDataAndProcess(pageUrl)
-
-        // 创建定时任务
-        cron.schedule(CRON_EXPRESSION, async () => {
-          console.log('Running scheduled task...');
-          await fetchDataAndProcess(pageUrl);
-        })
-
-        // 返回初始数据（HTML 和内容）
-        return NextResponse.json(initialExecutionResult)
+      if (type && page && element && condition && value !== undefined) {
+        
+        const { data, error } = await supabase
+          .from('Alert rules')
+          .insert({
+            type,
+            page,
+            element,
+            condition,
+            value
+          })
+          .select()
+        
+        if (error) {
+          console.error('Supabase error:', error)
+        } else {
+          console.log('Data inserted successfully:', data);
+          return NextResponse.json(data)
+        }
       } else {
         return NextResponse.json({ error: "Missing parameters", status:400 })
       }

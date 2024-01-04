@@ -19,6 +19,36 @@ async function fetchDataAndProcess(pageUrl) {
 
       if (html != undefined) {
         const content = getContent(html)
+
+        // 判断是否满足预警规则
+        let { rules, getRulesError } = await supabase
+          .from('Alert rules')
+          .select('id, type, page, element, condition, value')
+          .order('created_at', { ascending: false });
+        if (getRulesError) {
+          console.log(error)
+        }
+
+        if (rules && rules.length > 0) {
+          rules.forEach(rule => {
+            if (content.includes(rule.value)) {
+              console.log('预警！')
+              // 触发企业微信webhook 通知
+              fetch('https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=5ffe15ce-cb63-4550-a707-1bdd892396a0', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  "msgtype": "text",
+                  "text": {
+                    "content": `您的页面内容可能有不正常变更，请及时确认：${rules.page}`
+                  }
+                })
+              })
+            }
+          })
+        }
         
         console.log(content)
         const { data, error } = await supabase
@@ -29,12 +59,13 @@ async function fetchDataAndProcess(pageUrl) {
             url: pageUrl
           })
           .select()
-        
+      
         if (error) {
           console.error('Supabase error:', error)
         } else {
           console.log('Data inserted successfully:', content);
           return ({html, content})
+
         }
       }
     }
@@ -60,7 +91,7 @@ function getContent(html) {
     }
     return text
   }
-  const textContent = getAllTextNodes($('#shopify-section-template--16564069793950__d28232c6-b4e9-4fec-b0e0-0f32109b9118')[0])
+  const textContent = getAllTextNodes($('#shopify-section-template--16445589029022__4fce367b-96f8-40e0-8ef9-f3b5c1cd3f84')[0])
   return(textContent)
 }
 
