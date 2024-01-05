@@ -1,21 +1,12 @@
 // 使用服务端组件时会与 Polaris 的 createContext 冲突，所以需要使用客户端组件
 "use client"
-import { AppProvider, 
-  Page, 
-  Layout, 
-  Frame, 
-  Navigation,
+import {
   Button,
   Modal,
   ChoiceList,
   Select,
-  TextField,
-  DataTable
+  TextField
  } from '@shopify/polaris';
-import {
-  OrdersMajor,
-  ConversationMinor,
-} from '@shopify/polaris-icons';
 import { useState, useEffect, useCallback } from 'react';
 import '@shopify/polaris/build/esm/styles.css';
 import React from 'react';
@@ -95,46 +86,9 @@ export default function Content() {
   const activator = <Button onClick={handleModalChange}>Add new rules</Button>;
 
 
-  const navigationMarkup = (
-    <Navigation location="/">
-      <Navigation.Section
-        items={[
-          {
-            label: 'Dashboard',
-            icon: OrdersMajor
-          },
-          {
-            label: 'Content Changes',
-            icon: OrdersMajor,
-            url: '/content'
-          },
-          {
-            label: 'Notifications',
-            icon: OrdersMajor,
-            url: '/notifications'
-          },
-          {
-            label: 'Settings',
-            icon: OrdersMajor
-          }
-        ]}
-        action={{
-          icon: ConversationMinor,
-          accessibilityLabel: 'Contact support'
-        }}
-      />
-    </Navigation>
-  );
-
-
-  const actualPageMarkup = (
-    <Page title="Account">
-      <Layout>
-        <Layout.AnnotatedSection
-          title="Notifications"
-          description="Jaded Pixel will use this as your account information."
-        >
-        <Modal
+  return (
+    <div>
+      <Modal
           activator={activator}
           open={active}
           onClose={handleClose}
@@ -179,7 +133,7 @@ export default function Content() {
                 {label: 'Include', value: 'include'},
                 {label: 'Exclude', value: 'exclude'},
                 {label: 'Exist', value: 'exist'},
-                {label: 'Non-existent', value: 'non-existent'}
+                {label: 'Non-existent', value: 'non_existent'}
               ]}
               onChange={handleConditionChange}
               value={selectedCondition}
@@ -193,22 +147,6 @@ export default function Content() {
           </Modal.Section>
         </Modal>
         {rules.length > 0 ? <AlertRules rules={rules}></AlertRules> : null}
-        </Layout.AnnotatedSection>
-      </Layout>
-    </Page>
-  );
-
-  const pageMarkup = actualPageMarkup
-
-  return (
-    <AppProvider>
-      <Page>
-        <Layout>
-          <Frame navigation={navigationMarkup}>
-            {pageMarkup}
-          </Frame>
-        </Layout>
-      </Page>
-    </AppProvider>
+    </div>
   )
 }

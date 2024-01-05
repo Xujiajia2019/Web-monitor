@@ -1,15 +1,5 @@
 // 使用服务端组件时会与 Polaris 的 createContext 冲突，所以需要使用客户端组件
 "use client"
-import { AppProvider, 
-  Page, 
-  Layout, 
-  Frame, 
-  Navigation, 
- } from '@shopify/polaris';
-import {
-  OrdersMajor,
-  ConversationMinor,
-} from '@shopify/polaris-icons';
 import { useState, useEffect } from 'react';
 import '@shopify/polaris/build/esm/styles.css';
 import React from 'react';
@@ -44,63 +34,9 @@ export default function Content() {
   }, []);
 
 
-
-  const navigationMarkup = (
-    <Navigation location="/">
-      <Navigation.Section
-        items={[
-          {
-            label: 'Dashboard',
-            icon: OrdersMajor
-          },
-          {
-            label: 'Content Changes',
-            icon: OrdersMajor,
-            url: '/content'
-          },
-          {
-            label: 'Notifications',
-            icon: OrdersMajor,
-            url: '/notifications'
-          },
-          {
-            label: 'Settings',
-            icon: OrdersMajor
-          }
-        ]}
-        action={{
-          icon: ConversationMinor,
-          accessibilityLabel: 'Contact support'
-        }}
-      />
-    </Navigation>
-  );
-
-
-  const actualPageMarkup = (
-    <Page title="Account">
-      <Layout>
-        <Layout.AnnotatedSection
-          title="Account details"
-          description="Jaded Pixel will use this as your account information."
-        >
-        {active ? <ContentLogList logData={logData}></ContentLogList> : <ContentMonitorStarter setActive={setActive}></ContentMonitorStarter>}
-        </Layout.AnnotatedSection>
-      </Layout>
-    </Page>
-  );
-
-  const pageMarkup = actualPageMarkup
-
   return (
-    <AppProvider>
-      <Page>
-        <Layout>
-          <Frame navigation={navigationMarkup}>
-            {pageMarkup}
-          </Frame>
-        </Layout>
-      </Page>
-    </AppProvider>
+    <div>
+      {active && logData.length > 0 ? <ContentLogList logData={logData}></ContentLogList> : <ContentMonitorStarter setActive={setActive}></ContentMonitorStarter>}
+    </div>
   )
 }

@@ -4,7 +4,7 @@ import { supabase } from '/api'
 import cheerio from 'cheerio';
 
 // 每 10 分钟执行一次
-const CRON_EXPRESSION = '*/10 * * * *';
+const CRON_EXPRESSION = '*/1 * * * *';
 
 async function fetchDataAndProcess(pageUrl) {
   try {
@@ -18,9 +18,8 @@ async function fetchDataAndProcess(pageUrl) {
       const html = await response.text()
 
       if (html != undefined) {
-        const content = getContent(html)
-
-        // 判断是否满足预警规则
+        
+        // 获取所有预警规则
         let { rules, getRulesError } = await supabase
           .from('Alert rules')
           .select('id, type, page, element, condition, value')
@@ -31,31 +30,21 @@ async function fetchDataAndProcess(pageUrl) {
 
         if (rules && rules.length > 0) {
           rules.forEach(rule => {
-            if (content.includes(rule.value)) {
-              console.log('预警！')
-              // 触发企业微信webhook 通知
-              fetch('https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=5ffe15ce-cb63-4550-a707-1bdd892396a0', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                  "msgtype": "text",
-                  "text": {
-                    "content": `您的页面内容可能有不正常变更，请及时确认：${rules.page}`
-                  }
-                })
-              })
+            if (rule.type === 'page_content' && rule.page === pageUrl) {
+              const isRuleSatisfied = checkRule(html, rule)
+
+              if (isRuleSatisfied) {
+                triggerNotifications()
+              }
             }
+
           })
         }
-        
-        console.log(content)
+        const content = ''
         const { data, error } = await supabase
           .from('Page Content')
           .insert({
             html,
-            content,
             url: pageUrl
           })
           .select()
@@ -75,7 +64,7 @@ async function fetchDataAndProcess(pageUrl) {
   }
 };
 
-function getContent(html) {
+function getContent(html, element) {
   const $ = cheerio.load(html)
   // get all text content
   function getAllTextNodes(node) {
@@ -83,7 +72,7 @@ function getContent(html) {
     if (node.type === 'text') {
       text += node.data;
     } else if (node.children) {
-      if (node.name !== 'style') { 
+      if (node.name !== 'style') {
         $(node.children).each((index, child) => {
           text += getAllTextNodes(child);
         });
@@ -91,10 +80,42 @@ function getContent(html) {
     }
     return text
   }
-  const textContent = getAllTextNodes($('#shopify-section-template--16445589029022__4fce367b-96f8-40e0-8ef9-f3b5c1cd3f84')[0])
+  const textContent = getAllTextNodes($(element)[0])
   return(textContent)
 }
 
+function checkRule(rule, html) {
+  const { element, condition, value } = rule
+  switch (condition) {
+    case 'contains':
+      return getContent(html, element).includes(value)
+    case 'notContains':
+      return !getContent(html, element).includes(value)
+    case 'exists':
+      return $(element).length > 0
+    case 'non_existent':
+      return $(element).length === 0
+    default:
+      return false
+  }
+}
+
+function triggerNotifications() {
+  console.log('警告！')
+  // 触发企业微信webhook 通知
+  fetch('https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=5ffe15ce-cb63-4550-a707-1bdd892396a0', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      "msgtype": "text",
+      "text": {
+        "content": `注意：您的页面内容可能有不正常变更，请及时查看！`
+      }
+    })
+  })
+}
 
 export async function POST(req) {
   try {
