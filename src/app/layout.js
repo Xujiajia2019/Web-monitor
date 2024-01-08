@@ -24,11 +24,6 @@ export default function RootLayout({ children }) {
       <Navigation.Section
         items={[
           {
-            label: 'Dashboard',
-            icon: OrdersMajor,
-            url: '/'
-          },
-          {
             label: 'Content Changes',
             icon: OrdersMajor,
             url: '/content'
@@ -57,8 +52,6 @@ export default function RootLayout({ children }) {
                 <Page title="Dashboard">
                   <Layout>
                     <Layout.AnnotatedSection
-                      title="Dashboard"
-                      description="Description of dashboard"
                     >
                       {children}
                     </Layout.AnnotatedSection>

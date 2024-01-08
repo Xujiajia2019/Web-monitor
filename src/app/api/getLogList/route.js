@@ -6,14 +6,13 @@ export async function GET(req) {
     if (req.method === "GET") {
       let { data, error } = await supabase
         .from('Page Content')
-        .select('id, url, content, created_at')
+        .select('id, url, created_at, html')
         .order('created_at', { ascending: false });
 
       if (error) {
         console.log(error)
         return NextResponse.json({error})
       } else {
-        console.log(data)
         return NextResponse.json(data);
       }
     } else {

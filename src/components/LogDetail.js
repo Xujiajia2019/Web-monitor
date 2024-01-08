@@ -5,7 +5,7 @@ const LogDetail = ({log}) => {
   return (
     <div>
       <h1>Content detail</h1>
-      {log.content}
+      {log.html}
     </div>
   );
 };

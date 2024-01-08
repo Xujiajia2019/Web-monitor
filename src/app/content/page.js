@@ -15,7 +15,7 @@ export default function Content() {
     // 在组件挂载时获取数据
     const fetchData = async () => {
       try {
-        const response = await fetch('/api/logList');  // 替换为你的实际 API 端点
+        const response = await fetch('/api/getLogList');  // 替换为你的实际 API 端点
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }

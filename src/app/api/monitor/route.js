@@ -20,21 +20,26 @@ async function fetchDataAndProcess(pageUrl) {
       if (html != undefined) {
         
         // 获取所有预警规则
-        let { rules, getRulesError } = await supabase
+        let { data: rules, error: getRulesError } = await supabase
           .from('Alert rules')
           .select('id, type, page, element, condition, value')
           .order('created_at', { ascending: false });
         if (getRulesError) {
-          console.log(error)
+          console.log(`Get alert rules error: ${getRulesError}`)
         }
+        
+        console.log(`rules: ${JSON.stringify(rules)}`)
 
         if (rules && rules.length > 0) {
           rules.forEach(rule => {
             if (rule.type === 'page_content' && rule.page === pageUrl) {
+              console.log(`Checking rule ${rule.id}...`)
               const isRuleSatisfied = checkRule(html, rule)
 
+              console.log(`Rule ${rule.id} is satisfied: ${isRuleSatisfied}`)
+
               if (isRuleSatisfied) {
-                triggerNotifications()
+                triggerNotifications(rule)
               }
             }
 
@@ -52,7 +57,7 @@ async function fetchDataAndProcess(pageUrl) {
         if (error) {
           console.error('Supabase error:', error)
         } else {
-          console.log('Data inserted successfully:', content);
+          console.log('Data inserted successfully');
           return ({html, content})
 
         }
@@ -84,14 +89,14 @@ function getContent(html, element) {
   return(textContent)
 }
 
-function checkRule(rule, html) {
+function checkRule(html, rule) {
   const { element, condition, value } = rule
   switch (condition) {
-    case 'contains':
-      return getContent(html, element).includes(value)
-    case 'notContains':
-      return !getContent(html, element).includes(value)
-    case 'exists':
+    case 'include':
+      return getContent(html, element).replace(/\n/g, '').includes(value)
+    case 'exclude':
+      return !getContent(html, element).replace(/\n/g, '').includes(value)
+    case 'exist':
       return $(element).length > 0
     case 'non_existent':
       return $(element).length === 0
@@ -100,7 +105,7 @@ function checkRule(rule, html) {
   }
 }
 
-function triggerNotifications() {
+function triggerNotifications(rule) {
   console.log('警告！')
   // 触发企业微信webhook 通知
   fetch('https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=5ffe15ce-cb63-4550-a707-1bdd892396a0', {
@@ -109,9 +114,15 @@ function triggerNotifications() {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      "msgtype": "text",
-      "text": {
-        "content": `注意：您的页面内容可能有不正常变更，请及时查看！`
+      "msgtype": "markdown",
+      "markdown": {
+        "content": `请注意: 页面内容发生异常变化！\n
+        > 页面：<font color=\"comment\">${rule.page}</font>
+        > 不符合预警规则：<font color=\"comment\">${rule.id}</font>
+        > 规则类型：<font color=\"comment\">${rule.type}</font>
+        > 元素：<font color=\"comment\">${rule.element}</font>
+        > 条件：<font color=\"comment\">${rule.condition}</font>
+        > 值：<font color=\"comment\">${rule.value}</font>`
       }
     })
   })
@@ -126,7 +137,7 @@ export async function POST(req) {
       
       if (pageUrl !== undefined) {
         // 初始获取页面内容
-        const initialExecutionResult = await fetchDataAndProcess(pageUrl)
+        // const initialExecutionResult = await fetchDataAndProcess(pageUrl)
 
         // 创建定时任务
         cron.schedule(CRON_EXPRESSION, async () => {

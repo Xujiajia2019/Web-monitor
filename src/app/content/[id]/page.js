@@ -12,12 +12,12 @@ export default function Detail({params}) {
     // 在组件挂载时获取数据
     const fetchData = async () => {
       try {
-        const response = await fetch('/api/logList');  // 替换为你的实际 API 端点
+        const response = await fetch('/api/getLogList');
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
-        const data = await response.json(); // 替换为你的获取数据的函数
+        const data = await response.json();
         if (data && data.length > 0) {
           const targetLog = data.find(log => log.id == params.id)
           console.log(targetLog)
@@ -29,7 +29,7 @@ export default function Detail({params}) {
     };
 
     fetchData();
-  }, []);
+  }, [params.id]);
 
   return (
     <div>
