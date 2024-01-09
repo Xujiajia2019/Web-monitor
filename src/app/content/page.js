@@ -15,13 +15,14 @@ export default function Content() {
     // 在组件挂载时获取数据
     const fetchData = async () => {
       try {
-        const response = await fetch('/api/getLogList');  // 替换为你的实际 API 端点
+        const response = await fetch('/api/getContentLogList');  // 替换为你的实际 API 端点
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
         const data = await response.json(); // 替换为你的获取数据的函数
         if (data && data.length > 0) {
+          console.log(data)
           setLogData(data)
           setActive(true)
         }
@@ -36,7 +37,7 @@ export default function Content() {
 
   return (
     <div>
-      {active && logData.length > 0 ? <ContentLogList logData={logData}></ContentLogList> : <ContentMonitorStarter setActive={setActive}></ContentMonitorStarter>}
+      {active && logData.length > 0 ? <ContentLogList logData={logData}></ContentLogList> : <ContentMonitorStarter setLogData={setLogData} setActive={setActive}></ContentMonitorStarter>}
     </div>
   )
 }

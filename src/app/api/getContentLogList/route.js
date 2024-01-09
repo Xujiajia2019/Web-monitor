@@ -6,7 +6,7 @@ export async function GET(req) {
     if (req.method === "GET") {
       let { data, error } = await supabase
         .from('Page Content')
-        .select('id, url, created_at, html')
+        .select('id, url, created_at, html, diff_content')
         .order('created_at', { ascending: false });
 
       if (error) {

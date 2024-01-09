@@ -10,7 +10,7 @@ import {
 import { useState, useEffect, useCallback } from 'react';
 import '@shopify/polaris/build/esm/styles.css';
 import React from 'react';
-import AlertRules from '../../components/AlertRules'
+import ContentAlertRules from '../../components/ContentAlertRules'
 
 export default function Content() {
   const [rules, setRules] = useState([]);
@@ -146,7 +146,7 @@ export default function Content() {
             />
           </Modal.Section>
         </Modal>
-        {rules.length > 0 ? <AlertRules rules={rules}></AlertRules> : null}
+        {rules.length > 0 ? <ContentAlertRules rules={rules}></ContentAlertRules> : null}
     </div>
   )
 }

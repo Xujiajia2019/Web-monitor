@@ -1,7 +1,7 @@
 import {Page, Card, DataTable} from '@shopify/polaris';
 import React from 'react';
 
-function AlertRules({rules}) {
+function ContentAlertRules({rules}) {
   const rows = rules.map(item => Object.values(item))
 
   return (
@@ -31,4 +31,4 @@ function AlertRules({rules}) {
   );
 }
 
-export default AlertRules;
+export default ContentAlertRules;

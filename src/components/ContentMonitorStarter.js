@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Form, FormLayout, TextField, Button } from '@shopify/polaris';
 
-const Starter = ({ setActive }) => {
+const Starter = ({ setActive, setLogData }) => {
   const [page, setPage] = useState('');
 
   const handlePageChange = (value) => {
@@ -10,7 +10,7 @@ const Starter = ({ setActive }) => {
 
   const handleSubmit = useCallback(() => {
     // 向后端接口发请求，将 URL 传过去
-    fetch('/api/monitor', {
+    fetch('/api/contentMonitor', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -19,11 +19,10 @@ const Starter = ({ setActive }) => {
     })
     .then(res => res.json())
     .then(data => {
-      const content = data.content
-      console.log(content)
+      setLogData(data)
       setActive(true)
     })
-  }, [page]);
+  }, [page, setActive, setLogData]);
 
 
   return (

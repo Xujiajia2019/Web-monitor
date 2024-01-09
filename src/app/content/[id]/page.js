@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import '@shopify/polaris/build/esm/styles.css';
 import React from 'react';
-import LogDetail from '../../../components/LogDetail'
+import ContentLogDetail from '../../../components/ContentLogDetail'
 
 export default function Detail({params}) {
   const [log, setLog] = useState({});
@@ -12,7 +12,7 @@ export default function Detail({params}) {
     // 在组件挂载时获取数据
     const fetchData = async () => {
       try {
-        const response = await fetch('/api/getLogList');
+        const response = await fetch('/api/getContentLogList');
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -33,7 +33,7 @@ export default function Detail({params}) {
 
   return (
     <div>
-      <LogDetail log={log}></LogDetail>
+      <ContentLogDetail log={log}></ContentLogDetail>
     </div>
   )
 }
