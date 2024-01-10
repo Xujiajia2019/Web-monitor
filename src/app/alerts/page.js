@@ -28,8 +28,8 @@ export default function Content() {
   const handleConditionChange = useCallback((value) => setSelectedCondition(value), []);
   const handleRegxChange = useCallback((value) => setRegx(value), []);
 
+  // 获取数据: 只在组件挂载时执行一次
   useEffect(() => {
-    // 在组件挂载时获取数据
     const fetchData = async () => {
       try {
         const response = await fetch('/api/getAllAlertRules');  // 替换为你的实际 API 端点
@@ -45,7 +45,6 @@ export default function Content() {
         console.error('Error fetching data:', error);
       }
     };
-
     fetchData();
   }, []);
 

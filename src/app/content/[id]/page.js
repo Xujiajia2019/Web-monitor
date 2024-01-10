@@ -8,8 +8,8 @@ import ContentLogDetail from '../../../components/ContentLogDetail'
 export default function Detail({params}) {
   const [log, setLog] = useState({});
 
+  // 获取数据：组件挂载和参数变化时执行
   useEffect(() => {
-    // 在组件挂载时获取数据
     const fetchData = async () => {
       try {
         const response = await fetch('/api/getContentLogList');
@@ -27,9 +27,8 @@ export default function Detail({params}) {
         console.error('Error fetching data:', error);
       }
     };
-
     fetchData();
-  }, [params.id]);
+  }, []);
 
   return (
     <div>

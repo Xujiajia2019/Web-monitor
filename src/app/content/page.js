@@ -11,8 +11,8 @@ export default function Content() {
   const [active, setActive] = useState(null);
   const [logData, setLogData] = useState([]);
 
+  // 获取数据: 只在组件挂载时执行一次
   useEffect(() => {
-    // 在组件挂载时获取数据
     const fetchData = async () => {
       try {
         const response = await fetch('/api/getContentLogList');  // 替换为你的实际 API 端点
@@ -36,7 +36,7 @@ export default function Content() {
 
 
   return (
-    <div>
+    <div title='Dashboard'>
       {active && logData.length > 0 ? <ContentLogList logData={logData}></ContentLogList> : <ContentMonitorStarter setLogData={setLogData} setActive={setActive}></ContentMonitorStarter>}
     </div>
   )
