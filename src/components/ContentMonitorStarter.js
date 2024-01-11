@@ -1,15 +1,16 @@
 import React, { useState, useCallback } from 'react';
 import { Form, FormLayout, TextField, Button } from '@shopify/polaris';
 
-const Starter = ({ setActive, setLogData }) => {
-  const [page, setPage] = useState('');
+const Starter = ({ setPageListData }) => {
+  const [pages, setPages] = useState('');
 
   const handlePageChange = (value) => {
-    setPage(value);
+    setPages(value);
   };
 
+
   const handleSubmit = useCallback(() => {
-    // 向后端接口发请求，将 URL 传过去
+    // 处理多个 URL
     fetch('/api/contentMonitor', {
       method: 'POST',
       headers: {
@@ -22,19 +23,19 @@ const Starter = ({ setActive, setLogData }) => {
       setLogData(data)
       setActive(true)
     })
-  }, [page, setActive, setLogData]);
+  }, []);
 
 
   return (
     <Form onSubmit={handleSubmit}>
       <FormLayout>
         <TextField
-          value={page}
+          value={pages}
           onChange={handlePageChange}
           label="Website URL"
           type="text"
           autoComplete="url"
-          helpText={<span>Enter URL to start monitoring.</span>}
+          helpText={<span>Enter URL to start monitoring, separated with ';'.</span>}
         />
         <Button submit>Start monitoring</Button>
       </FormLayout>
