@@ -6,86 +6,50 @@ const Diff = require('diff')
 
 // 每 10 分钟执行一次
 // const CRON_EXPRESSION = '0 */10 * * *';
-const CRON_EXPRESSION = '* * * * *';
+// const CRON_EXPRESSION = '* * * * *';
 
-async function fetchDataAndProcess(pageUrl) {
+async function fetchDataAndProcess(pageUrl, pageId, proxy, sitemap, range) {
   try {
     if (pageUrl !== undefined) {
 
       // 获取页面内容
-      const html = await getHtml(pageUrl)
-      //  获取所有文本内容
-      const content = getContent(html, 'body')
+      const pageHtml = await getHtml(pageUrl)
+      const pageContent = getContent(pageHtml, 'body')
 
       let lastContentData = {}
-
-      if (html != undefined && content != undefined) {
-
+      if (pageHtml != undefined && pageContent != undefined) {
         // 获取上一次的内容作为模板数据
-        lastContentData = await getLastContent()
-        // console.log(`lastContentData:${lastContentData}`)
+        lastContentData = await getLastContent(pageUrl, pageId)
 
         if (lastContentData && lastContentData.content != undefined) {
 
           // 模板数据内容
           const lastContent = lastContentData.content
-          // console.log(`lastContent:${lastContent}}`)
+          // const lastHtml = lastContentData.html
 
-          if (lastContent != content) {
-            // diff 算法比对内容
-            const diffResult = Diff.diffWords(lastContent, content)
-            console.log(`diffResult: ${JSON.stringify(diffResult)}`)
+          if (lastContent != pageContent) {
+            // diff 比对内容
+            const diffResult = Diff.diffWords(lastContent, pageContentontent)
 
             let diffContent = ''
             diffResult.forEach((part) => {
-              // green for additions, red for deletions
-              // grey for common parts
               const color = part.added ? 'green' : part.removed ? 'red' : 'grey';
-              // 为了方便查看，将 diff 结果用 span 标签包裹，并根据 diff 类型添加颜色，如果是删除的内容，显示划线
               const textDecoration = part.removed ? 'text-decoration:line-through;' : '';
               diffContent += `<span style="color:${color};${textDecoration}">${part.value}</span>`;
             })
-            console.log(`diffContent: ${diffContent}`)
 
             // 如果有内容变化，保存内容
             if (diffContent !== '') {
-              const data = await saveContent(pageUrl, html, content, diffContent)
+              const data = await saveContent(pageUrl, pageId, pageHtml, pageContent, diffContent)
               return data
             }
+
           }
         } else {
           // 如果没有上一次的内容，将当前内容作为模板数据
-          const data = await saveContent(pageUrl, html, content, '')
+          const data = await saveContent(pageUrl, pageId, pageHtml, pageContent, '')
           return data
         }
-        
-        // // 获取所有预警规则
-        // let { data: rules, error: getRulesError } = await supabase
-        //   .from('Alert rules')
-        //   .select('id, type, page, element, condition, value')
-        //   .order('created_at', { ascending: false });
-        // if (getRulesError) {
-        //   console.log(`Get alert rules error: ${getRulesError}`)
-        // }
-        
-        // console.log(`rules: ${JSON.stringify(rules)}`)
-
-        // if (rules && rules.length > 0) {
-        //   rules.forEach(rule => {
-        //     if (rule.type === 'page_content' && rule.page === pageUrl) {
-        //       console.log(`Checking rule ${rule.id}...`)
-        //       const isRuleSatisfied = checkRule(html, rule)
-
-        //       console.log(`Rule ${rule.id} is satisfied: ${isRuleSatisfied}`)
-
-        //       if (isRuleSatisfied) {
-        //         triggerNotifications(rule)
-        //       }
-        //     }
-
-        //   })
-        // }
-        // const content = ''
 
       }
     }
@@ -106,12 +70,13 @@ async function getHtml(pageUrl) {
   return html
 }
 
-async function saveContent(pageUrl, html, content, diffContent) {
+async function saveContent(pageUrl, pageId, html, content, diffContent) {
   const { data, error } = await supabase
     .from('Page Content')
     .insert({
       html,
       url: pageUrl,
+      page_id: pageId,
       content,
       diff_content: diffContent
     })
@@ -125,11 +90,13 @@ async function saveContent(pageUrl, html, content, diffContent) {
   }
 }
 
-async function getLastContent() {
-  // 获取上一次的内容作为模板数据
+async function getLastContent(pageUrl, pageId) {
+  // 获取上一次的内容作为模板数据,筛选出某个 URL 的最新内容
   let { data: lastContentData, error: getLastContentError } = await supabase
     .from('Page Content')
     .select('html, content')
+    .eq('url', pageUrl)
+    .eq('page_id', pageId)
     .order('created_at', { ascending: false })
     .limit(1);
   if (getLastContentError) {
@@ -206,24 +173,37 @@ export async function POST(req) {
   try {
     if (req.method === "POST") {
       const request = await req.json();
-      const pageUrl = request.url;
 
-      
-      if (pageUrl !== undefined) {
-        // 初始获取页面内容
-        const initialExecutionResult = await fetchDataAndProcess(pageUrl)
+      // 获取多个页面 URL,及监控参数
+      const pageList = request.pageList;
+      const proxy = request.proxy;
+      const sitemap = request.sitemap;
+      const timer = request.timer;
+      const range = request.range;
 
+
+      if (pageList.length > 0) {
+        // 获取初始网站地图和页面内容
+        // const initialPageSitemap = await getSitemap(pageUrl)
+        pageList.forEach(async page => {
+          // 初始获取页面内容
+          await fetchDataAndProcess(page.url, page.id, proxy, sitemap, range);
+          
+        })
+
+        const CRON_EXPRESSION = `*/${timer} * * * *`;
         // 创建定时任务
         cron.schedule(CRON_EXPRESSION, async () => {
           console.log('Running scheduled task...');
-          await fetchDataAndProcess(pageUrl);
+          pageList.forEach(async page => {
+            // 初始获取页面内容
+            await fetchDataAndProcess(page.url, page.id, proxy, sitemap, range);  
+          })
         })
-
-        // 返回初始数据（HTML 和内容）
-        return NextResponse.json(initialExecutionResult)
-      } else {
-        return NextResponse.json({ error: "Missing parameters", status:400 })
       }
+
+      return NextResponse.json({ message: "Task scheduled", status:200 })
+
     } else {
       return NextResponse.json({ error: "Method not allowed", status:405 })
     }

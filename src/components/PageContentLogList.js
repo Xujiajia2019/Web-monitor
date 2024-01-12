@@ -1,22 +1,21 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Card,
   ResourceList,
-  Avatar,
   ResourceItem,
-  Text
+  Text,
 } from '@shopify/polaris';
 
-const LogList = ({logData}) => {
+const LogList = ({ pageId, pageLogList }) => {
   return (
     <div>
       <h1>Loglist</h1>
       <Card>
         <ResourceList
           resourceName={{singular: 'log', plural: 'logs'}}
-          items={logData}
+          items={pageLogList}
           renderItem={(item) => {
-            const {id, url, content, created_at} = item;
+            const {id, url, created_at} = item;
 
             // 将 created_at 字符串转为 Date 对象
             const createdAtDate = new Date(created_at);
@@ -31,22 +30,12 @@ const LogList = ({logData}) => {
               hour12: false, // 24 小时制
               timeZone: 'Asia/Shanghai', // 北京时区
             });
-            // const shortcutActions = latestOrderUrl
-            //   ? [
-            //       {
-            //         content: 'View details',
-            //         accessibilityLabel: `View latest order`,
-            //         url: latestOrderUrl,
-            //       },
-            //     ]
-            //   : undefined;
 
             return (
               <ResourceItem
                 id={id}
-                url={`/content/${id}`}
+                url={`/content/${pageId}/${id}`}
                 accessibilityLabel={`View details`}
-                // shortcutActions={shortcutActions}
                 persistActions
               >
                 <Text variant="bodyMd" fontWeight="bold" as="h3">

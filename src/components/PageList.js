@@ -3,7 +3,7 @@ import {
   Card,
   ResourceList,
   ResourceItem,
-  Text
+  Text,
 } from '@shopify/polaris';
 
 const PageList = ({ pageListData }) => {
@@ -13,8 +13,8 @@ const PageList = ({ pageListData }) => {
       <Card>
         <ResourceList
           resourceName={{singular: 'page', plural: 'pages'}}
-          items={logData}
-          renderItem={(item) => {1
+          items={pageListData}
+          renderItem={(item) => {
             const {id, url, created_at} = item;
 
             // 将 created_at 字符串转为 Date 对象
@@ -31,11 +31,20 @@ const PageList = ({ pageListData }) => {
               timeZone: 'Asia/Shanghai', // 北京时区
             });
 
+            const shortcutActions = [
+              {
+                content: 'Delete monitor',
+                accessibilityLabel: `Delete monitor`,
+                url: `/`,
+              }
+            ]
+
             return (
               <ResourceItem
                 id={id}
                 url={`/content/${id}`}
                 accessibilityLabel={`View details`}
+                shortcutActions={shortcutActions}
                 persistActions
               >
                 <Text variant="bodyMd" fontWeight="bold" as="h3">

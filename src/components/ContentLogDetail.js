@@ -5,7 +5,7 @@ const ContentLogDetail = ({log}) => {
   return (
     <div>
       <h1>Content detail</h1>
-      <div dangerouslySetInnerHTML={{ __html: log.diff_content }}>
+      <div dangerouslySetInnerHTML={{ __html: log.content }}>
       </div>
     </div>
   );
