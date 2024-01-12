@@ -25,23 +25,39 @@ async function fetchDataAndProcess(pageUrl, pageId, proxy, sitemap, range) {
 
           // 模板数据内容
           const lastContent = lastContentData.content
-          // const lastHtml = lastContentData.html
+          const lastHtml = lastContentData.html
 
-          if (lastContent != pageContent) {
-            // diff 比对内容
-            const diffResult = Diff.diffWords(lastContent, pageContentontent)
-
-            let diffContent = ''
+          if (lastHtml != pageHtml) {
+            const diffResult = Diff.diffChars(lastHtml, pageHtml)
+            let diffHtml = ''
             diffResult.forEach((part) => {
               const color = part.added ? 'green' : part.removed ? 'red' : 'grey';
               const textDecoration = part.removed ? 'text-decoration:line-through;' : '';
-              diffContent += `<span style="color:${color};${textDecoration}">${part.value}</span>`;
+              diffHtml += `<span style="color:${color};${textDecoration}">${part.value}</span>`;
             })
-
             // 如果有内容变化，保存内容
             if (diffContent !== '') {
-              const data = await saveContent(pageUrl, pageId, pageHtml, pageContent, diffContent)
+              const data = await saveContent(pageUrl, pageId, pageHtml, pageContent, diffHtml, diffContent)
               return data
+            }
+
+
+            if (lastContent != pageContent) {
+              // diff 比对内容
+              const diffResult = Diff.diffWords(lastContent, pageContent)
+
+              let diffContent = ''
+              diffResult.forEach((part) => {
+                const color = part.added ? 'green' : part.removed ? 'red' : 'grey';
+                const textDecoration = part.removed ? 'text-decoration:line-through;' : '';
+                diffContent += `<span style="color:${color};${textDecoration}">${part.value}</span>`;
+              })
+
+              // 如果有内容变化，保存内容
+              if (diffContent !== '') {
+                const data = await saveContent(pageUrl, pageId, pageHtml, pageContent, diffContent)
+                return data
+              }
             }
 
           }
