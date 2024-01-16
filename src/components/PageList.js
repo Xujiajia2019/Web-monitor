@@ -9,7 +9,6 @@ import {
 const PageList = ({ pageListData }) => {
   return (
     <div>
-      <h1>Content Monitors</h1>
       <Card>
         <ResourceList
           resourceName={{singular: 'page', plural: 'pages'}}
@@ -31,20 +30,12 @@ const PageList = ({ pageListData }) => {
               timeZone: 'Asia/Shanghai', // 北京时区
             });
 
-            const shortcutActions = [
-              {
-                content: 'Delete monitor',
-                accessibilityLabel: `Delete monitor`,
-                url: `/`,
-              }
-            ]
-
+          
             return (
               <ResourceItem
                 id={id}
                 url={`/content/${id}`}
                 accessibilityLabel={`View details`}
-                shortcutActions={shortcutActions}
                 persistActions
               >
                 <Text variant="bodyMd" fontWeight="bold" as="h3">

@@ -9,6 +9,7 @@ const Diff = require('diff')
 // const CRON_EXPRESSION = '* * * * *';
 
 async function fetchDataAndProcess(pageUrl, pageId, proxy, sitemap, range) {
+  console.log(`fetchDataAndProcess: ${pageUrl}; ${pageId}; ${proxy}; ${sitemap}; ${range}`)
   try {
     if (pageUrl !== undefined) {
 
@@ -20,50 +21,49 @@ async function fetchDataAndProcess(pageUrl, pageId, proxy, sitemap, range) {
       if (pageHtml != undefined && pageContent != undefined) {
         // 获取上一次的内容作为模板数据
         lastContentData = await getLastContent(pageUrl, pageId)
-
+        
         if (lastContentData && lastContentData.content != undefined) {
-
           // 模板数据内容
           const lastContent = lastContentData.content
           const lastHtml = lastContentData.html
 
           if (lastHtml != pageHtml) {
-            const diffResult = Diff.diffChars(lastHtml, pageHtml)
+            console.log(`页面html发生变化: ${pageUrl}`)
+            // const diffHtmlResult = Diff.diffChars(lastHtml, pageHtml)
             let diffHtml = ''
-            diffResult.forEach((part) => {
-              const color = part.added ? 'green' : part.removed ? 'red' : 'grey';
-              const textDecoration = part.removed ? 'text-decoration:line-through;' : '';
-              diffHtml += `<span style="color:${color};${textDecoration}">${part.value}</span>`;
-            })
-            // 如果有内容变化，保存内容
-            if (diffContent !== '') {
-              const data = await saveContent(pageUrl, pageId, pageHtml, pageContent, diffHtml, diffContent)
-              return data
-            }
+            let diffContent = ''
+            // console.log(`diffHtmlResult: ${diffHtmlResult}`)
 
-
+            // diffHtmlResult.forEach((part) => {
+            //   const htmlDiffColor = part.added ? 'green' : part.removed ? 'red' : 'grey';
+            //   const htmlDiffColorDecoration = part.removed ? 'text-decoration:line-through;' : '';
+            //   diffHtml += `<span style="color:${htmlDiffColor};${htmlDiffColorDecoration}">${part.value}</span>`;
+            // })
+            
             if (lastContent != pageContent) {
+              console.log(`页面文本内容发生变化: ${pageUrl}`)
               // diff 比对内容
-              const diffResult = Diff.diffWords(lastContent, pageContent)
+              const diffContentResult = Diff.diffWords(lastContent, pageContent)
 
-              let diffContent = ''
-              diffResult.forEach((part) => {
+              diffContentResult.forEach((part) => {
                 const color = part.added ? 'green' : part.removed ? 'red' : 'grey';
                 const textDecoration = part.removed ? 'text-decoration:line-through;' : '';
                 diffContent += `<span style="color:${color};${textDecoration}">${part.value}</span>`;
               })
-
-              // 如果有内容变化，保存内容
-              if (diffContent !== '') {
-                const data = await saveContent(pageUrl, pageId, pageHtml, pageContent, diffContent)
-                return data
-              }
+            
+            }
+            console.log(`diffHtml: ${diffHtml}`)
+            console.log(`diffContent: ${diffContent}`)
+            // 如果有内容变化，保存内容
+            if (diffContent !== '' || diffHtml !== '') {
+              const data = await saveContent(pageUrl, pageId, pageHtml, pageContent, diffHtml, diffContent)
+              return data
             }
 
           }
         } else {
           // 如果没有上一次的内容，将当前内容作为模板数据
-          const data = await saveContent(pageUrl, pageId, pageHtml, pageContent, '')
+          const data = await saveContent(pageUrl, pageId, pageHtml, pageContent, '', '')
           return data
         }
 
@@ -86,7 +86,7 @@ async function getHtml(pageUrl) {
   return html
 }
 
-async function saveContent(pageUrl, pageId, html, content, diffContent) {
+async function saveContent(pageUrl, pageId, html, content, diffHtml, diffContent) {
   const { data, error } = await supabase
     .from('Page Content')
     .insert({
@@ -94,6 +94,7 @@ async function saveContent(pageUrl, pageId, html, content, diffContent) {
       url: pageUrl,
       page_id: pageId,
       content,
+      diff_html: diffHtml,
       diff_content: diffContent
     })
     .select()
@@ -196,25 +197,25 @@ export async function POST(req) {
       const sitemap = request.sitemap;
       const timer = request.timer;
       const range = request.range;
+      // const notifications = request.notifications;
 
 
       if (pageList.length > 0) {
         // 获取初始网站地图和页面内容
         // const initialPageSitemap = await getSitemap(pageUrl)
-        pageList.forEach(async page => {
+        for (const page of pageList) {
           // 初始获取页面内容
           await fetchDataAndProcess(page.url, page.id, proxy, sitemap, range);
-          
-        })
-
+        }
+      
         const CRON_EXPRESSION = `*/${timer} * * * *`;
         // 创建定时任务
         cron.schedule(CRON_EXPRESSION, async () => {
           console.log('Running scheduled task...');
-          pageList.forEach(async page => {
+          for (const page of pageList) {
             // 初始获取页面内容
-            await fetchDataAndProcess(page.url, page.id, proxy, sitemap, range);  
-          })
+            await fetchDataAndProcess(page.url, page.id, proxy, sitemap, range);
+          }
         })
       }
 

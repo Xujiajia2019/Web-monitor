@@ -2,6 +2,10 @@
 "use client"
 import { useState, useEffect } from 'react';
 import '@shopify/polaris/build/esm/styles.css';
+import {
+  Page, 
+  Layout,
+} from '@shopify/polaris';
 import React from 'react';
 import PageContentLogList from '../../../components/PageContentLogList'
 
@@ -29,8 +33,12 @@ export default function Detail({params}) {
   }, [params.pageListId]);
 
   return (
-    <div>
-      <PageContentLogList pageId={params.pageListId} pageLogList={pageLogList}></PageContentLogList>
-    </div>
+    <Page title="Page Monitors">
+      <Layout>
+        <Layout.AnnotatedSection>
+          <PageContentLogList pageId={params.pageListId} pageLogList={pageLogList}></PageContentLogList>
+        </Layout.AnnotatedSection>
+      </Layout>
+    </Page>
   )
 }
