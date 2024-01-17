@@ -11,7 +11,7 @@ export async function GET(req) {
       if (pageListId) {
         let { data, error } = await supabase
           .from('Page Content')
-          .select('id, url, created_at, html, content, diff_content')
+          .select('id, url, created_at, html, content, diff_content, diff_html')
           .eq('page_id', pageListId)
           .order('created_at', { ascending: false });
 
@@ -24,7 +24,7 @@ export async function GET(req) {
       } else if (logId) {
         let { data, error } = await supabase
           .from('Page Content')
-          .select('id, url, created_at, html, content, diff_content')
+          .select('id, url, created_at, html, content, diff_content, diff_html')
           .eq('id', logId)
           .order('created_at', { ascending: false });
 

@@ -3,6 +3,7 @@ import cron from 'node-cron';
 import { supabase } from '/api'
 import cheerio from 'cheerio';
 const Diff = require('diff')
+const he = require('he');
 
 // 每 10 分钟执行一次
 // const CRON_EXPRESSION = '0 */10 * * *';
@@ -29,16 +30,40 @@ async function fetchDataAndProcess(pageUrl, pageId, proxy, sitemap, range) {
 
           if (lastHtml != pageHtml) {
             console.log(`页面html发生变化: ${pageUrl}`)
+            console.log(`lastHtml`)
+            console.log(`pageHtml`)
+
             // const diffHtmlResult = Diff.diffChars(lastHtml, pageHtml)
+            
             let diffHtml = ''
             let diffContent = ''
+            // let originalHtmlCount = 0
+            // let modifiedHtmlCount = 0
+            // let diffHtmlPercent = 0
+
+            let originalContentCount = 0
+            let modifiedContentCount = 0
+            let diffContentPercent = 0
+
+
             // console.log(`diffHtmlResult: ${diffHtmlResult}`)
 
             // diffHtmlResult.forEach((part) => {
             //   const htmlDiffColor = part.added ? 'green' : part.removed ? 'red' : 'grey';
             //   const htmlDiffColorDecoration = part.removed ? 'text-decoration:line-through;' : '';
-            //   diffHtml += `<span style="color:${htmlDiffColor};${htmlDiffColorDecoration}">${part.value}</span>`;
+            //   diffHtml += `<pre style="color:${htmlDiffColor};${htmlDiffColorDecoration}">${he.encode(part.value)}</pre>`;
+            //   if (part.removed) {
+            //     originalHtmlCount += part.count;
+            //   } else if (part.added) {
+            //     modifiedHtmlCount += part.count;
+            //   } else {
+            //     originalHtmlCount += part.count;
+            //   }
             // })
+
+            // diffHtmlPercent = parseFloat(((modifiedHtmlCount / originalHtmlCount) * 100).toFixed(2));
+
+            // console.log(`diffHtmlPercent: ${diffHtmlPercent}`)
             
             if (lastContent != pageContent) {
               console.log(`页面文本内容发生变化: ${pageUrl}`)
@@ -49,21 +74,35 @@ async function fetchDataAndProcess(pageUrl, pageId, proxy, sitemap, range) {
                 const color = part.added ? 'green' : part.removed ? 'red' : 'grey';
                 const textDecoration = part.removed ? 'text-decoration:line-through;' : '';
                 diffContent += `<span style="color:${color};${textDecoration}">${part.value}</span>`;
+                if (part.removed) {
+                  originalContentCount += part.count;
+                } else if (part.added) {
+                  modifiedContentCount += part.count;
+                } else {
+                  originalContentCount += part.count;
+                }
               })
+              diffContentPercent = parseFloat(((modifiedContentCount / originalContentCount) * 100).toFixed(2));
             
             }
-            console.log(`diffHtml: ${diffHtml}`)
+            // console.log(`diffHtml: ${diffHtml}`)
             console.log(`diffContent: ${diffContent}`)
+
             // 如果有内容变化，保存内容
             if (diffContent !== '' || diffHtml !== '') {
-              const data = await saveContent(pageUrl, pageId, pageHtml, pageContent, diffHtml, diffContent)
+              const data = await saveContent(pageUrl, pageId, pageHtml, pageContent, diffHtml, diffContent, `${diffContentPercent}%`)
+
+              // 触发通知
+              if (diffContentPercent > Number(range)) {
+                triggerNotifications(pageUrl, diffContentPercent)
+              }
               return data
             }
 
           }
         } else {
           // 如果没有上一次的内容，将当前内容作为模板数据
-          const data = await saveContent(pageUrl, pageId, pageHtml, pageContent, '', '')
+          const data = await saveContent(pageUrl, pageId, pageHtml, pageContent, '', '', '')
           return data
         }
 
@@ -86,7 +125,7 @@ async function getHtml(pageUrl) {
   return html
 }
 
-async function saveContent(pageUrl, pageId, html, content, diffHtml, diffContent) {
+async function saveContent(pageUrl, pageId, html, content, diffHtml, diffContent, diffHtmlPercent) {
   const { data, error } = await supabase
     .from('Page Content')
     .insert({
@@ -95,7 +134,8 @@ async function saveContent(pageUrl, pageId, html, content, diffHtml, diffContent
       page_id: pageId,
       content,
       diff_html: diffHtml,
-      diff_content: diffContent
+      diff_content: diffContent,
+      diff_percent: diffHtmlPercent
     })
     .select()
   
@@ -163,7 +203,7 @@ function checkRule(html, rule) {
   }
 }
 
-function triggerNotifications(rule) {
+function triggerNotifications(url, percent) {
   console.log('警告！')
   // 触发企业微信webhook 通知
   fetch('https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=5ffe15ce-cb63-4550-a707-1bdd892396a0', {
@@ -174,13 +214,9 @@ function triggerNotifications(rule) {
     body: JSON.stringify({
       "msgtype": "markdown",
       "markdown": {
-        "content": `请注意: 页面内容发生异常变化！\n
-        > 页面：<font color=\"comment\">${rule.page}</font>
-        > 不符合预警规则：<font color=\"comment\">${rule.id}</font>
-        > 规则类型：<font color=\"comment\">${rule.type}</font>
-        > 元素：<font color=\"comment\">${rule.element}</font>
-        > 条件：<font color=\"comment\">${rule.condition}</font>
-        > 值：<font color=\"comment\">${rule.value}</font>`
+        "content": `请注意: 页面内容发生变更！\n
+        > 页面：<font color=\"comment\">${url}</font>
+        > 变更范围：<font color=\"comment\">${percent}</font>`
       }
     })
   })

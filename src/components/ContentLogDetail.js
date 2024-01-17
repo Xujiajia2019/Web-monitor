@@ -30,10 +30,7 @@ const ContentLogDetail = ({log}) => {
         <Tabs tabs={tabs} selected={selected} onSelect={handleTabChange} fitted>
             
             <Card title={tabs[selected].content}>
-              { selected == 0 ? 
-              <div dangerouslySetInnerHTML={{ __html: log.diff_content }}>
-              </div> : <div dangerouslySetInnerHTML={{ __html: log.diff_html }}>
-              </div> }
+              { selected == 0 ? <div dangerouslySetInnerHTML={{ __html: log.diff_content }}></div> : <div dangerouslySetInnerHTML={{ __html: log.diff_html }}></div> }
             </Card>
             
         </Tabs>
